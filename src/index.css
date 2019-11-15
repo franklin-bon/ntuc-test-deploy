@@ -1,3 +1,7 @@
+::placeholder {
+  color: rgb(206, 212, 218) !important;
+  opacity: 1; /* Firefox */
+}
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
@@ -7,7 +11,219 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+
+.modal-bg {
+    position: fixed;
+    top: 0px; 
+    left: 0px; 
+    height: 100%; 
+    width: 100%; 
+    z-index: 1051; 
+    opacity: 0.5; 
+    background-color: black; 
+}
+.modal-popup {
+    position: fixed; 
+    width:100%;
+    height: 100%;
+    z-index: 1052;
+}
+.modal-css {
+    background-color: white; 
+    border-radius: 2px;
+    min-width: 250px;
+    font-size: 16px;
+}
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
+}
+.version-web {
+    display: block;
+}
+#version-mobile {
+    display: none;
+}
+.fixed-top {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 1030;
+}
+.hide {
+    display:none;
+}
+.banner {
+  text-align: center;
+}
+.home-hdr {
+    font-size:45px; 
+    text-align:center; 
+    margin:5px 0px 5px 0px; 
+    font-weight:bold;
+}
+.home-subtle {
+  cursor: pointer;
+  background-color: #58595b; 
+  color: white;
+  text-align: center; 
+  padding: 0px 10px 10px 10px; 
+  font-weight: bold;
+  font-size: 15px; 
+}
+.homem-subtle {
+  cursor: pointer;
+  background-color: #58595b; 
+  color: white;
+  text-align: center; 
+  padding: 0px 10px 10px 10px; 
+  font-weight: bold;
+  font-size: 15px; 
+  vertical-align: middle;
+}
+.home-tblcol {
+  width: 50%;
+  padding: 10px;
+}
+.home-tileweb {
+    margin-bottom: 30px;
+}
+.home-tileimg {
+  width: 100%;
+  cursor: pointer;
+}
+.jobHeader {
+    height: 36px;
+}
+#jobDesc p img {
+    padding: 0% 18% !important;
+}
+#jobDesc p strong {
+    font-size: 30px !important;
+}
+#jobDesc ul {
+    font-size: 20px !important;
+}
+.txt-ttl { font-size: 23px !important; }
+.txt-subttl { font-size: 16px !important; }
+.txt-loc { font-size: 18px !important; }
+.btnback {
+    cursor:pointer;
+}
+.btn-apply {
+    cursor: pointer;
+    height: 60px;
+}
+.img-sms {
+    width: 60px;
+    margin-bottom: 5px;
+}
+.bannerNum {
+    padding: 30px 60px 50px 60px;
+}
+.contnr {
+    width: 800px;
+    margin-right: auto;
+    margin-left: auto;
+}
+.img-qst {
+    width: 100%;
+    border-radius: 10px;
+}
+.img-ans {
+    width: 40px;
+    margin-bottom: 5px;
+}
+@media screen and (max-width: 991px) {
+    
+    .home-hdr {
+        font-size:35px; 
+        text-align:center; 
+        margin:5px 0px 5px 0px; 
+        font-weight:bold;
+    }
+    #jobDesc p img {
+        padding: 0% 13% !important;
+    }
+    #jobDesc p strong {
+        font-size: 25px !important;
+    }
+    #jobDesc ul {
+        font-size: 15px !important;
+    }
+}
+@media screen and (max-width: 800px) {
+    .contnr { width:100%; }
+    .bannerNum { padding: 20px 70px 30px 70px; }
+    .btn-apply { height: 54px; }
+    .txt-subttl { font-size: 15px !important; }
+    .txt-loc { font-size: 17px !important; }
+}
+@media screen and (max-width: 767px) {
+    .version-web {
+        display: none !important;
+    }
+    #version-mobile {
+        display: block;
+    }
+    .home-hdr {
+        font-size:30px;
+    }
+    .home-subtle {
+        font-size:13px; 
+    }
+    #jobDesc p img {
+        padding: 0% 5% !important;
+    }
+    #jobDesc p strong {
+        font-size: 23px !important;
+    }
+    #jobDesc ul {
+        font-size: 14px !important;
+    }
+    .img-qst {
+        width: 200px;
+    }
+    .modal-css {
+        /* width: 300px; */
+        font-size: 15px;
+    }
+}
+@media screen and (max-width: 430px) {
+    .home-hdr {
+        font-size:25px;
+    }
+    .home-subtle {
+      font-size:11px; 
+    }
+    .homem-subtle {
+        font-size: 12px;
+        padding: 6px 10px 10px 10px; 
+    }
+    #jobDesc p img {
+        padding: 0% !important;
+    }
+    #jobDesc p strong {
+        font-size: 23px !important;
+    }
+    #jobDesc ul {
+        font-size: 14px !important;
+    }
+    .modal-css {
+        /* width: 250px; */
+        font-size: 16px;
+    }
+}
+@media screen and (max-width: 360px) {
+    .homem-subtle {
+        font-size: 10px;
+        padding: 5px 10px 10px 10px; 
+    }
+}
+@media screen and (max-width: 325px) {
+    .homem-subtle {
+        font-size: 9px;
+        padding: 5px 10px 10px 10px; 
+    }
 }
