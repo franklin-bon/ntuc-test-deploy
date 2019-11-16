@@ -8,13 +8,17 @@ class Home extends Component {
     state = { homeTiles:[], tiles:[], tiles_mobile:[] }
     
     getLocalData() {
+        var localData = '';
         if (localStorage.getItem('homeTiles')) { //get data from local storage
-            var localData = JSON.parse(localStorage.getItem('homeTiles'));
-            this.dataTiles(localData);
-            this.dataTilesMobile(localData);
-            this.setState({ homeTiles:localData });
-            console.log("Using data from local.");
+            localData = JSON.parse(localStorage.getItem('homeTiles'));
+        } else {
+            localData = config.sample_tiles.data;
+            localStorage.setItem('homeTiles', JSON.stringify(localData));
         }
+        this.dataTiles(localData);
+        this.dataTilesMobile(localData);
+        this.setState({ homeTiles:localData });
+        console.log("Using data from local.");
     }
     
     dataTiles(arr) {
@@ -102,6 +106,7 @@ class Home extends Component {
         }).then(response => {
             return response.json();
         }).then(json => {
+            console.log(json);
             if (json.code === "00") {
                 this.dataTiles(json.data);
                 this.dataTilesMobile(json.data);
