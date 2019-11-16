@@ -114,6 +114,7 @@ class Home extends Component {
     }
         
     componentDidMount() {
+        console.log("test 1:", process.env.NODE_ENV);
         this.handleApiRequest();
         config.getLocationId(this.props);
     }
