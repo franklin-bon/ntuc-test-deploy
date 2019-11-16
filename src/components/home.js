@@ -140,7 +140,7 @@ class Home extends Component {
                     <Row>
                         <Col xs={12} md={12}>
                             <div className="home-hdr" >
-                                JOB OPPORTUNITIES 
+                                JOB OPPORTUNITIES
                             </div>
                         </Col>
                     </Row>
