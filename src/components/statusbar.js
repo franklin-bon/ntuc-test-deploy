@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 
 class Status extends Component {
-    state = { online_offline: "" }
+    state = { online_offline: "offline" }
     
     internetChecker() {
         setInterval(() => { 
