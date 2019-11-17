@@ -3,6 +3,7 @@ import { FormControl } from 'react-bootstrap';
 import * as qs from 'query-string';
 import * as config from '../config.js';
 import * as global from '../actions/GlobalFunctions.js';
+import StatusBar from "./statusbar";
 import imgFairPrice from '../img/fairprice-logo-header.png';
 import imgBack from '../img/icon-back.png';
 import imgBtnApply from '../img/button-apply.png';
@@ -154,7 +155,7 @@ class Jobs extends Component {
     
     backStep() {
         if (this.state.activeStep === "job_desc") {
-            const LOCID = config.getLocationId(this.props) === "" ? "" : "?locid="+config.getLocationId(this.props);
+            const LOCID = global.getLocationId(this.props) === "" ? "" : "?locid="+global.getLocationId(this.props);
             window.location.href = "../home"+LOCID;
         } else if (this.state.activeStep === "sms_step1" || this.state.activeStep === "sms_step2") {
             this.setState({ activeStep:"job_desc" });
@@ -211,7 +212,7 @@ class Jobs extends Component {
         var MOBNUM = this.state.apiTxtMobile;
         var MOBNUMLEN = MOBNUM.length;
         if (global.validate_sgmobilenum(MOBNUM) === 0) { 
-            const LOCID = config.getLocationId(this.props) === "" ? "" : config.getLocationId(this.props);
+            const LOCID = global.getLocationId(this.props) === "" ? "" : global.getLocationId(this.props);
             this.showMsg('loading','');
             var formData = new FormData();
             formData.append('kioskid', API_KIOSID);
@@ -469,7 +470,7 @@ class Jobs extends Component {
         } else if (status === "location") {
             this.apiSaveLocation();
         } else if (status === "browse") {
-            const LOCID = config.getLocationId(this.props) === "" ? "" : "?locid="+config.getLocationId(this.props);
+            const LOCID = global.getLocationId(this.props) === "" ? "" : "?locid="+global.getLocationId(this.props);
             window.location.href = "../home"+LOCID;
         }
     }
@@ -722,7 +723,6 @@ class Jobs extends Component {
     }
         
     componentDidMount() {
-        //this.showMsg('loading', '');
         this.getLocalData();
 
         // for parameters id
@@ -788,6 +788,8 @@ class Jobs extends Component {
                     </div>
                 </div>
                 <div style={{ height:"77px" }} ></div>
+                
+                <StatusBar/>
                 
                 <div className={this.state.stepApply} >
                     <div className="contnr" style={{ marginBottom:"50px" }} >
@@ -1034,6 +1036,6 @@ class Jobs extends Component {
             </div>
         );
     }
-}
+};
 
 export default Jobs;

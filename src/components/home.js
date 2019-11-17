@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
 import imgBanner from '../img/banner-home.jpg';
 import * as config from '../config.js';
+import * as global from '../actions/GlobalFunctions.js';
+import * as smpdata from '../actions/SampleData.js';
 
 class Home extends Component {
     
@@ -12,7 +14,7 @@ class Home extends Component {
         if (localStorage.getItem('homeTiles')) { //get data from local storage
             localData = JSON.parse(localStorage.getItem('homeTiles'));
         } else {
-            localData = config.sample_tiles.data;
+            localData = smpdata.sample_tiles.data;
             localStorage.setItem('homeTiles', JSON.stringify(localData));
         }
         this.dataTiles(localData);
@@ -120,11 +122,11 @@ class Home extends Component {
         
     componentDidMount() {
         this.handleApiRequest();
-        config.getLocationId(this.props);
+        global.getLocationId(this.props);
     }
     
     nextStep(jobId) {
-        const LOCID = config.getLocationId(this.props) === "" ? "" : "&locid="+config.getLocationId(this.props);
+        const LOCID = global.getLocationId(this.props) === "" ? "" : "&locid="+global.getLocationId(this.props);
         console.log("Job ID:", jobId);
         localStorage.setItem('newData', JSON.stringify({ jobid:jobId }));
         window.location.href = "job/online-picker?id="+jobId+LOCID;
@@ -205,6 +207,6 @@ class Home extends Component {
             </div>
         );
     }
-}
+};
 
 export default Home;

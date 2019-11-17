@@ -1,3 +1,4 @@
+import * as qs from 'query-string';
 
 export function validate_sgmobilenum(mobilenum) {
     let error = 0;
@@ -35,3 +36,21 @@ export function validate_sgmobilenum(mobilenum) {
 //                MOBNUM.split("").map((key) => {
 //                    console.log(key);
 //                });
+
+export function getLocationId(thisProps) {
+    //----- start - save location id parameter -----//
+    let locid = thisProps.location.search;
+    if (locid.trim() !== "") {
+        const PARSED = qs.parse(thisProps.location.search);
+        if (PARSED.locid === undefined) {
+            locid="";
+        } else {
+            locid = PARSED.locid;
+        }
+    } else { 
+        locid=""; 
+    }
+    localStorage.setItem('locID', locid);
+    return locid;
+    //----- end - save location id parameter -----//
+}
