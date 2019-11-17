@@ -4,6 +4,7 @@ import imgBanner from '../img/banner-home.jpg';
 import * as config from '../config.js';
 import * as global from '../actions/GlobalFunctions.js';
 import * as smpdata from '../actions/SampleData.js';
+import StatusBar from "./statusbar";
 
 class Home extends Component {
     
@@ -135,6 +136,7 @@ class Home extends Component {
     render() { 
         return (
             <div className="contnr" >
+                <StatusBar/>
                 <Container style={{ marginBottom:"20px" }}>
                     <Row>
                         <img 
