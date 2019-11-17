@@ -1,6 +1,7 @@
 {
   "short_name": "NTUC FairPrice",
   "name": "NTUC FairPrice",
+  "description": "A picture of your favorite pupperino",
   "icons": [
     {
       "src": "favicon.ico",
