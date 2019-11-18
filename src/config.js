@@ -1,7 +1,7 @@
 
 export const INTERNET_CON = navigator.onLine;
 
-export const host = process.env.NODE_ENV === "development" ? "https://feed-qa.fastjobs.sg/" : "https://feed.fastjobs.sg/";
+export const host = process.env.NODE_ENV === "development" ? "https://feed-qa.fastjobs.fun/" : "https://feed.fastjobs.sg/";
 
 const parameters = "?c=kioskntuc&key=4173221dfccb31979361d4194f3b2fb7&locale=en&v=1.0";
 
