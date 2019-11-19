@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
 
 class Status extends Component {
-    state = { online_offline: "offline" }
+    state = { online_offline:"offline", fade:"fadeOut" }
     
     internetChecker() {
-        setInterval(() => { 
+        setInterval(() => {
             if (navigator.onLine) {
-                this.setState({ online_offline:"online" });
+                this.setState({ online_offline:"online", fade:"fadeOut" });
             } else {
-                this.setState({ online_offline:"offline" });
+                this.setState({ online_offline:"offline", fade:"fadeIn" });
             }
         }, 1000);
     }
@@ -20,9 +20,7 @@ class Status extends Component {
     render() { 
         return ( 
             <React.Fragment>
-                <div className={`contnr fixed int-con ${this.state.online_offline}`} >
-                    { this.state.online_offline === "online" ? "Online" : "No connection" }
-                </div>
+                <div className={`contnr fixed ${this.state.fade} int-con offline`} >No connection</div>
             </React.Fragment>
         );
     }

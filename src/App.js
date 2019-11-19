@@ -1,5 +1,4 @@
-import React from 'react';
-//import logo from './logo.svg';
+import React, { Component } from 'react';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { BrowserRouter as Router, Switch, Route, Redirect } from "react-router-dom";

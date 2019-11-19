@@ -1,7 +1,6 @@
 {
-  "short_name": "NTUC FairPrice",
+  "short_name": "NTUC",
   "name": "NTUC FairPrice",
-  "description": "Description for NTUC FairPrice",
   "icons": [
     {
       "src": "favicon.ico",

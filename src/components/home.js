@@ -5,6 +5,7 @@ import * as config from '../config.js';
 import * as global from '../actions/GlobalFunctions.js';
 import * as smpdata from '../actions/SampleData.js';
 import StatusBar from "./statusbar";
+import * as ga from '../actions/GoogleAnalytics';
 
 class Home extends Component {
     
@@ -122,15 +123,20 @@ class Home extends Component {
     }
         
     componentDidMount() {
+        
         this.handleApiRequest();
         global.getLocationId(this.props);
+        
+        ga.gInitialize();
+        ga.gPageView("Home Page");
     }
     
-    nextStep(jobId) {
+    nextStep(jobId, jobName) {
         const LOCID = global.getLocationId(this.props) === "" ? "" : "&locid="+global.getLocationId(this.props);
         console.log("Job ID:", jobId);
         localStorage.setItem('newData', JSON.stringify({ jobid:jobId }));
         window.location.href = "job/online-picker?id="+jobId+LOCID;
+        ga.gRecEvent("Home Page - View Job "+jobName, "");
     }
 
     render() { 
@@ -162,11 +168,11 @@ class Home extends Component {
                                                 src={key.img}
                                                 alt={key.ttl}
                                                 className={ key.ttl === '' ? 'home-tileimg hide' : 'home-tileimg' }
-                                                onClick={() => this.nextStep(key.jobid)}
+                                                onClick={() => this.nextStep(key.jobid, key.ttl)}
                                             />
                                             <div 
                                                 className={ key.ttl === '' ? 'home-subtle hide' : 'home-subtle' } 
-                                                onClick={() => this.nextStep(key.jobid)}
+                                                onClick={() => this.nextStep(key.jobid, key.ttl)}
                                             >
                                                 {key.ttl}
                                             </div>

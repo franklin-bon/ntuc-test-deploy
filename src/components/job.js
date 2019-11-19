@@ -3,6 +3,7 @@ import { FormControl } from 'react-bootstrap';
 import * as qs from 'query-string';
 import * as config from '../config.js';
 import * as global from '../actions/GlobalFunctions.js';
+import * as ga from '../actions/GoogleAnalytics';
 import StatusBar from "./statusbar";
 import imgFairPrice from '../img/fairprice-logo-header.png';
 import imgBack from '../img/icon-back.png';
@@ -155,19 +156,24 @@ class Jobs extends Component {
     
     backStep() {
         if (this.state.activeStep === "job_desc") {
+            ga.gRecEvent("Job Details Page - Back to Home Page", "");
             const LOCID = global.getLocationId(this.props) === "" ? "" : "?locid="+global.getLocationId(this.props);
             window.location.href = "../home"+LOCID;
         } else if (this.state.activeStep === "sms_step1" || this.state.activeStep === "sms_step2") {
+            ga.gRecEvent("SMS Page - Back to Job Details Page", "");
             this.setState({ activeStep:"job_desc" });
             this.setState({ stepApply:"", stepNumber:"hide" });
         } else if (this.state.activeStep === "contact_details") {
+            ga.gRecEvent("User Details Page - Back to SMS Page", "");
             this.setState({ activeStep:"sms_step2" });
             this.setState({ stepNumber:"", stepInfo:"hide" });
             this.setState({ apiTxtMobile:"", smsTxtVerify:"hide", apiTxtOTP:"", smsBtnNext:"btn-apply", smsBtnVerify:"btn-apply hide" });
         } else if (this.state.activeStep === "questions") {
+            ga.gRecEvent("Questions Page - Back to User Details Page", "");
             this.setState({ activeStep:"contact_details" });
             this.setState({ stepInfo:"", stepQuestions:"hide" });
         } else if (this.state.activeStep === "location") {
+            ga.gRecEvent("Location Page - Back to Questions Page", "");
             this.getLocalQuestions();
             this.setState({ activeStep:"questions" });
             this.setState({ stepQuestions:"", stepLocation:"hide" });
@@ -176,16 +182,20 @@ class Jobs extends Component {
     
     mobShowHide() {
         if (this.state.mobType === "text") {
+            ga.gRecEvent("SMS Page - Show Mobile Number", "");
             this.setState({ mobType:"password", mobMsg:"SHOW" });
         } else {
+            ga.gRecEvent("SMS Page - Hide Mobile Number", "");
             this.setState({ mobType:"text", mobMsg:"HIDE" });
         }
     }
     
     chkBoxAgree() {
         if (this.state.chkBoxAgree === imgChkOff) {
+            ga.gRecEvent("User Details Page - Checked", "");
             this.setState({ chkBoxAgree:imgChkOn });
         } else {
+            ga.gRecEvent("User Details Page - UnChecked", "");
             this.setState({ chkBoxAgree:imgChkOff });
         }
     }
@@ -262,6 +272,7 @@ class Jobs extends Component {
                 return response.json();
             }).then(json => {
                 if (json.code === "00") {
+                    ga.gPageView("User Details Page");
                     this.closeMsg();
                     this.setState({ activeStep:"contact_details" });
                     this.setState({ stepNumber:"hide", stepInfo:"" });
@@ -296,6 +307,7 @@ class Jobs extends Component {
                 return response.json();
             }).then(json => {
                 if (json.code === "00") {
+                    ga.gPageView("Questions Page");
                     this.closeMsg();
                     this.apiRequestQuestions();
                 } else {
@@ -366,6 +378,7 @@ class Jobs extends Component {
             return response.json();
         }).then(json => {
             if (json.code === "00") {
+                ga.gPageView("Location Page");
                 this.closeMsg();
                 this.apiGetLocation();
             } else {
@@ -437,6 +450,7 @@ class Jobs extends Component {
                 return response.json();
             }).then(json => {
                 if (json.code === "00") {
+                    ga.gPageView("Thank You Page");
                     this.closeMsg();
                     this.setState({ activeStep:"thanks_page" });
                     this.setState({ stepLocation:"hide", stepThanks:"" });
@@ -455,21 +469,29 @@ class Jobs extends Component {
     
     nextStep(status) {
         if (status === "apply") {
+            ga.gPageView("SMS Page");
+            ga.gRecEvent("Job Details Page - Apply Button", "");
             this.setState({ activeStep:"sms_step1" });
             this.setState({ stepApply:"hide", stepNumber:"" });
             this.setState({ smsBtnNext:"btn-apply", smsBtnVerify:"btn-apply hide", smsTxtVerify:"hide" });
             this.setState({ stepApply:"hide", stepNumber:"" });
         } else if (status === "sms_next") {
+            ga.gRecEvent("SMS Page - Get OTP", "");
             this.apiGetOTP();
         } else if (status === "sms_verify") {
+            ga.gRecEvent("SMS Page - Verify OTP", "");
             this.apiVerifyOTP();
         } else if (status === "dtls_next") {
+            ga.gRecEvent("User Details Page - Save User Details", "");
             this.apiSaveUser();
         } else if (status === "questions") {
+            ga.gRecEvent("Questions Page - Save Answers", "");
             setTimeout(() => { this.apiSaveQuestions(); },100);
         } else if (status === "location") {
+            ga.gRecEvent("Location Page - Save Answers", "");
             this.apiSaveLocation();
         } else if (status === "browse") {
+            ga.gRecEvent("Thank You Page - Save Answers", "");
             const LOCID = global.getLocationId(this.props) === "" ? "" : "?locid="+global.getLocationId(this.props);
             window.location.href = "../home"+LOCID;
         }
@@ -729,7 +751,9 @@ class Jobs extends Component {
         console.log(this.props.location.search);
         const parsed = qs.parse(this.props.location.search);
         console.log(parsed);
-
+        
+        ga.gInitialize();
+        ga.gPageView("Job Details Page");
     }
 
     render() {
