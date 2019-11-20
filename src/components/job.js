@@ -33,9 +33,8 @@ class Jobs extends Component {
         stepQuestions: "hide",
         mobType: "password", //text or password
         mobMsg: "SHOW", //SHOW or HIDE
-        smsBtnNext: "btn-apply hide",
-        smsBtnVerify: "btn-apply hide",
-        smsTxtVerify: "hide",
+        otpStatus: "off", otpCount: 100, 
+        smsBtnNext: "btn-apply hide", smsBtnVerify: "btn-apply hide", smsTxtVerify: "hide",
         modalDisplay: "hide", modalButton: "hide", modalTxt: "", modalTxtAlign: "center"
     }
     
@@ -132,7 +131,8 @@ class Jobs extends Component {
         }
     }
     
-    checkLocation(selectedid) {
+    checkLocation(selectedid, txt) {
+        console.log(txt);
         var ALLACTIVE = 0;
         this.state.selectedLoc.map((keyactive) => {
             if (keyactive.check === "yes") { ALLACTIVE++; }
@@ -156,24 +156,19 @@ class Jobs extends Component {
     
     backStep() {
         if (this.state.activeStep === "job_desc") {
-            ga.gRecEvent("Job Details Page - Back to Home Page", "");
             const LOCID = global.getLocationId(this.props) === "" ? "" : "?locid="+global.getLocationId(this.props);
             window.location.href = "../home"+LOCID;
         } else if (this.state.activeStep === "sms_step1" || this.state.activeStep === "sms_step2") {
-            ga.gRecEvent("SMS Page - Back to Job Details Page", "");
             this.setState({ activeStep:"job_desc" });
             this.setState({ stepApply:"", stepNumber:"hide" });
         } else if (this.state.activeStep === "contact_details") {
-            ga.gRecEvent("User Details Page - Back to SMS Page", "");
             this.setState({ activeStep:"sms_step2" });
             this.setState({ stepNumber:"", stepInfo:"hide" });
             this.setState({ apiTxtMobile:"", smsTxtVerify:"hide", apiTxtOTP:"", smsBtnNext:"btn-apply", smsBtnVerify:"btn-apply hide" });
         } else if (this.state.activeStep === "questions") {
-            ga.gRecEvent("Questions Page - Back to User Details Page", "");
             this.setState({ activeStep:"contact_details" });
             this.setState({ stepInfo:"", stepQuestions:"hide" });
         } else if (this.state.activeStep === "location") {
-            ga.gRecEvent("Location Page - Back to Questions Page", "");
             this.getLocalQuestions();
             this.setState({ activeStep:"questions" });
             this.setState({ stepQuestions:"", stepLocation:"hide" });
@@ -182,20 +177,16 @@ class Jobs extends Component {
     
     mobShowHide() {
         if (this.state.mobType === "text") {
-            ga.gRecEvent("SMS Page - Show Mobile Number", "");
             this.setState({ mobType:"password", mobMsg:"SHOW" });
         } else {
-            ga.gRecEvent("SMS Page - Hide Mobile Number", "");
             this.setState({ mobType:"text", mobMsg:"HIDE" });
         }
     }
     
     chkBoxAgree() {
         if (this.state.chkBoxAgree === imgChkOff) {
-            ga.gRecEvent("User Details Page - Checked", "");
             this.setState({ chkBoxAgree:imgChkOn });
         } else {
-            ga.gRecEvent("User Details Page - UnChecked", "");
             this.setState({ chkBoxAgree:imgChkOff });
         }
     }
@@ -216,6 +207,7 @@ class Jobs extends Component {
     }
     
     apiGetOTP() {
+        this.setState({ otpCount:'wait' });
         let API_URL = config.API_GETOTP; console.log(API_URL);
         var API_KIOSID = config.API_KIOSKID;
         var JOBID = this.state.chosenJobId;
@@ -240,6 +232,7 @@ class Jobs extends Component {
                     this.setState({ apiAppId:json.data[0].appid });
                     this.setState({ activeStep:"sms_step2" });
                     this.setState({ smsBtnNext:"btn-apply hide", smsBtnVerify:"btn-apply", smsTxtVerify:"" });
+                    this.setState({ otpCount:60, otpStatus:"on", apiTxtOTP:"" });
                 } else {
                     this.showMsg('alert',json.message[0]);
                 } 
@@ -272,11 +265,12 @@ class Jobs extends Component {
                 return response.json();
             }).then(json => {
                 if (json.code === "00") {
-                    ga.gPageView("User Details Page");
+                    ga.gPageView("UserDetails");
                     this.closeMsg();
                     this.setState({ activeStep:"contact_details" });
                     this.setState({ stepNumber:"hide", stepInfo:"" });
-                    this.setState({ chkBoxAgree:imgChkOn, apiTxtName:json.data[0].name });
+                    this.setState({ chkBoxAgree:imgChkOff, apiTxtName:json.data[0].name });
+                    this.setState({ otpCount:'wait', otpStatus:"off" });
                 } else {
                     this.showMsg('alert',json.message[0]);
                 }
@@ -307,7 +301,7 @@ class Jobs extends Component {
                 return response.json();
             }).then(json => {
                 if (json.code === "00") {
-                    ga.gPageView("Questions Page");
+                    ga.gPageView("Questions");
                     this.closeMsg();
                     this.apiRequestQuestions();
                 } else {
@@ -378,7 +372,7 @@ class Jobs extends Component {
             return response.json();
         }).then(json => {
             if (json.code === "00") {
-                ga.gPageView("Location Page");
+                ga.gPageView("Locations");
                 this.closeMsg();
                 this.apiGetLocation();
             } else {
@@ -450,7 +444,7 @@ class Jobs extends Component {
                 return response.json();
             }).then(json => {
                 if (json.code === "00") {
-                    ga.gPageView("Thank You Page");
+                    ga.gPageView("Thankyou");
                     this.closeMsg();
                     this.setState({ activeStep:"thanks_page" });
                     this.setState({ stepLocation:"hide", stepThanks:"" });
@@ -469,29 +463,29 @@ class Jobs extends Component {
     
     nextStep(status) {
         if (status === "apply") {
-            ga.gPageView("SMS Page");
-            ga.gRecEvent("Job Details Page - Apply Button", "");
+            ga.gPageView("Otp");
+            ga.gRecEvent("JobAds", "ApplyJob", this.state.chosenJobId+' - '+this.state.chosenJob);
             this.setState({ activeStep:"sms_step1" });
             this.setState({ stepApply:"hide", stepNumber:"" });
             this.setState({ smsBtnNext:"btn-apply", smsBtnVerify:"btn-apply hide", smsTxtVerify:"hide" });
             this.setState({ stepApply:"hide", stepNumber:"" });
         } else if (status === "sms_next") {
-            ga.gRecEvent("SMS Page - Get OTP", "");
+            ga.gRecEvent("Otp", "otp_SubmitMobn", this.state.chosenJobId+' - '+this.state.chosenJob);
             this.apiGetOTP();
         } else if (status === "sms_verify") {
-            ga.gRecEvent("SMS Page - Verify OTP", "");
+            ga.gRecEvent("Otp", "otp_Verify", this.state.chosenJobId+' - '+this.state.chosenJob);
             this.apiVerifyOTP();
         } else if (status === "dtls_next") {
-            ga.gRecEvent("User Details Page - Save User Details", "");
+            ga.gRecEvent("UserDetails", "dtls_Save", this.state.chosenJobId+' - '+this.state.chosenJob);
             this.apiSaveUser();
         } else if (status === "questions") {
-            ga.gRecEvent("Questions Page - Save Answers", "");
+            ga.gRecEvent("Questions", "qts_Save", this.state.chosenJobId+' - '+this.state.chosenJob);
             setTimeout(() => { this.apiSaveQuestions(); },100);
         } else if (status === "location") {
-            ga.gRecEvent("Location Page - Save Answers", "");
+            ga.gRecEvent("Locations", "loc_Save", this.state.chosenJobId+' - '+this.state.chosenJob);
             this.apiSaveLocation();
         } else if (status === "browse") {
-            ga.gRecEvent("Thank You Page - Save Answers", "");
+            ga.gRecEvent("Thankyou", "BrowseJobs", this.state.chosenJobId+' - '+this.state.chosenJob);
             const LOCID = global.getLocationId(this.props) === "" ? "" : "?locid="+global.getLocationId(this.props);
             window.location.href = "../home"+LOCID;
         }
@@ -743,9 +737,23 @@ class Jobs extends Component {
             this.setState({ modalDisplay:"", modalButton:"", modalTxt:txtmsg, modalTxtAlign:"left" });
         }
     }
-        
+    
     componentDidMount() {
         this.getLocalData();
+        
+        
+        setInterval(() => {
+            var count = this.state.otpCount;
+            if (this.state.otpStatus === "on" && count <= 60) {
+                count = count - 1;
+                if (count === 0) {
+                    this.setState({ otpCount:"link", otpStatus:"off" });
+                } else {
+                    this.setState({ otpCount:count });
+                }
+            } 
+        }, 1000);
+        
 
         // for parameters id
         console.log(this.props.location.search);
@@ -753,7 +761,7 @@ class Jobs extends Component {
         console.log(parsed);
         
         ga.gInitialize();
-        ga.gPageView("Job Details Page");
+        ga.gPageView("JobAds");
     }
 
     render() {
@@ -894,7 +902,11 @@ class Jobs extends Component {
                            <img src={imgBtnVerify} alt="Verify" className={this.state.smsBtnVerify} onClick={() => this.nextStep('sms_verify')} />
                        </div>
                        <div className={this.state.smsTxtVerify} style={{ textAlign:"center", marginBottom:"10px", fontSize:"15px", fontWeight:"500" }}>Did not receive OTP?</div>
-                       <div className={this.state.smsTxtVerify} style={{ textAlign:"center", fontSize:"15px", fontWeight:"500" }}>Resend in 39 seconds </div>
+                       <div className={this.state.smsTxtVerify} style={{ textAlign:"center", fontSize:"15px", fontWeight:"500" }}>
+                            { this.state.otpCount === 'link' ? <a onClick={() => this.nextStep('sms_next')} style={{ color:"#007bff", cursor:"pointer" }} >Resend OTP</a> : '' }
+                            { this.state.otpCount < 60 ? 'Resend in '+this.state.otpCount+' seconds' : '' }
+                            { this.state.otpCount === 'wait' ? 'Wait...' : '' }
+                       </div>
                     </div>
                 </div>
                 
@@ -1013,7 +1025,7 @@ class Jobs extends Component {
                                                     <img 
                                                         src={ key.check==="" ? imgChkOff : imgChkOn } 
                                                         alt="Checkbox Location" 
-                                                        onClick={() => this.checkLocation(key.locid)} 
+                                                        onClick={() => this.checkLocation(key.locid, key.loctxt)} 
                                                         style={{ width:"28px", cursor:"pointer", margin:"5px 10px 0px 0px" }} />
                                                 </td>
                                                 <td style={{ width:"99%", paddingBottom:"20px"}}>

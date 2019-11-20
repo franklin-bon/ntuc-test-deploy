@@ -3,7 +3,7 @@ import { Container, Row, Col } from 'react-bootstrap';
 import imgBanner from '../img/banner-home.jpg';
 import * as config from '../config.js';
 import * as global from '../actions/GlobalFunctions.js';
-import * as smpdata from '../actions/SampleData.js';
+import * as smpdata from '../actions/DefaultData.js';
 import StatusBar from "./statusbar";
 import * as ga from '../actions/GoogleAnalytics';
 
@@ -128,7 +128,7 @@ class Home extends Component {
         global.getLocationId(this.props);
         
         ga.gInitialize();
-        ga.gPageView("Home Page");
+        ga.gPageView("Home");
     }
     
     nextStep(jobId, jobName) {
@@ -136,7 +136,7 @@ class Home extends Component {
         console.log("Job ID:", jobId);
         localStorage.setItem('newData', JSON.stringify({ jobid:jobId }));
         window.location.href = "job/online-picker?id="+jobId+LOCID;
-        ga.gRecEvent("Home Page - View Job "+jobName, "");
+        ga.gRecEvent("Home","ViewJob", jobId + ' - ' + jobName);
     }
 
     render() { 

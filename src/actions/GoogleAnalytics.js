@@ -14,11 +14,12 @@ export function gPageView(pageName) {
     }
 }
 
-export function gRecEvent(category, action) {
-    console.log("Rendered Google Event", category + ' -- ' + action);
+export function gRecEvent(category, action, label) {
+    console.log("Rendered Google Event", category + ' -- ' + action + ' -- ' + label);
     ReactGA.event({
         category: category,
-        action: category
+        action: action,
+        label: label
     });
 }
 
