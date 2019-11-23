@@ -30,6 +30,6 @@ export function gDim(dimnum, val) {
             locid = "0";
         } else { locid = val; }
         console.log("Rendered Google Dimension Number "+dimnum, locid);
-        ReactGA.set({ 'dimension1': val });
+        ReactGA.set({ 'dimension1': locid });
     }
 }
