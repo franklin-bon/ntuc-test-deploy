@@ -6,6 +6,7 @@ import PgHome from "./components/home";
 import PgJob from "./components/job";
 import * as config from './config.js';
 import * as global from './actions/GlobalFunctions.js';
+import * as smpdata from './actions/DefaultData.js';
 
 class App extends Component {
     
@@ -41,6 +42,8 @@ class App extends Component {
                 localStorage.setItem('homeTiles', JSON.stringify(json.data)); //stored api data to local storage
             }
         }).catch(error => {
+            this.arrangeJobs(smpdata.primary_data.data);
+            localStorage.setItem('homeTiles', JSON.stringify(smpdata.primary_data.data)); //stored api data to local storage
             console.log('There has been a problem with fetching (Job List API): ',error);
         });
     }
