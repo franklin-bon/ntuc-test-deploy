@@ -6,6 +6,7 @@ import * as global from '../actions/GlobalFunctions.js';
 import * as smpdata from '../actions/DefaultData.js';
 import StatusBar from "./statusbar";
 import * as ga from '../actions/GoogleAnalytics';
+import ReactGA from 'react-ga';
 
 class Home extends Component {
     
@@ -16,7 +17,7 @@ class Home extends Component {
         if (localStorage.getItem('homeTiles')) { //get data from local storage
             localData = JSON.parse(localStorage.getItem('homeTiles'));
         } else {
-            localData = smpdata.sample_tiles.data;
+            localData = smpdata.primary_data.data;
             localStorage.setItem('homeTiles', JSON.stringify(localData));
         }
         this.dataTiles(localData);
@@ -93,50 +94,21 @@ class Home extends Component {
         }
         this.setState({ tiles_mobile:MAINSET });
     }
-    
-    handleApiRequest() {
-        let API_URL = config.API_HOMETILES;
-        let API_KIOSID = config.API_KIOSKID;
-        
-        //--- get local data first ---//
-        this.getLocalData();
-        
-        //--- api request ---//
-        var formData = new FormData();
-        formData.append('kioskid', API_KIOSID);
-        fetch(API_URL, {
-            method: 'POST',
-            body: formData
-        }).then(response => {
-            return response.json();
-        }).then(json => {
-            console.log(json);
-            if (json.code === "00") {
-                this.dataTiles(json.data);
-                this.dataTilesMobile(json.data);
-                this.setState({ homeTiles:json.data });
-                localStorage.setItem('homeTiles', JSON.stringify(json.data)); //stored api data to local storage
-            }
-        }).catch(error => {
-            console.log('There has been a problem with fetching (Job List API): ',error);
-        });
-    }
-        
+
     componentDidMount() {
-        
-        this.handleApiRequest();
-        global.getLocationId(this.props);
-        
         ga.gInitialize();
         ga.gPageView("Home");
+        
+        var locid = global.getLocationId(this.props);
+        if (locid !== "") {  ga.gDim(1, locid); }
+        
+        this.getLocalData();
     }
     
-    nextStep(jobId, jobName) {
-        const LOCID = global.getLocationId(this.props) === "" ? "" : "&locid="+global.getLocationId(this.props);
-        console.log("Job ID:", jobId);
-        localStorage.setItem('newData', JSON.stringify({ jobid:jobId }));
-        window.location.href = "job/online-picker?id="+jobId+LOCID;
-        ga.gRecEvent("Home","ViewJob", jobId + ' - ' + jobName);
+    nextStep(id, name) {
+        ga.gRecEvent("Home","ViewJob", id + ' - ' + name); 
+        const locid = global.getLocationId(this.props) === "" ? "" : "&locid="+global.getLocationId(this.props);
+        window.location.href = "job/" + global.tolink(name) + "?id=" + id + locid;
     }
 
     render() { 

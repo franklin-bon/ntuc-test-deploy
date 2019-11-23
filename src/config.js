@@ -1,11 +1,11 @@
 
 export const INTERNET_CON = navigator.onLine;
 
-export const host = process.env.NODE_ENV === "development" ? "https://feed-qa.fastjobs.fun/" : "https://feed.fastjobs.sg/";
+export const host = window.location.host === "pwa.fastjobs.sg" ? "https://feed.fastjobs.sg/" : "https://feed-qa.fastjobs.fun/";
 
 const parameters = "?c=kioskntuc&key=4173221dfccb31979361d4194f3b2fb7&locale=en&v=1.0";
 
-export const API_KIOSKID = process.env.NODE_ENV === "development" ? "1040" : "1060";
+export const API_KIOSKID = window.location.host === "pwa.fastjobs.sg" ? "1060" : "1040";
 
 export const API_HOMETILES = host + "api/kiosk/jobs/list" + parameters;
 

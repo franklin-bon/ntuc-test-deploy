@@ -4,6 +4,7 @@ import * as qs from 'query-string';
 import * as config from '../config.js';
 import * as global from '../actions/GlobalFunctions.js';
 import * as ga from '../actions/GoogleAnalytics';
+import * as smpdata from '../actions/DefaultData.js';
 import StatusBar from "./statusbar";
 import imgFairPrice from '../img/fairprice-logo-header.png';
 import imgBack from '../img/icon-back.png';
@@ -38,25 +39,53 @@ class Jobs extends Component {
         modalDisplay: "hide", modalButton: "hide", modalTxt: "", modalTxtAlign: "center"
     }
     
+    redirectHome() {
+        const LOCID = global.getLocationId(this.props) === "" ? "" : "?locid="+global.getLocationId(this.props);
+        window.location.href = "../home"+LOCID;
+    }
+    
     getLocalData() {
-        if (localStorage.getItem('newData')) {
-            var savData = JSON.parse(localStorage.getItem('newData'));
-            var locData = JSON.parse(localStorage.getItem('homeTiles'));
-            if (savData.jobid) {
-                var savJobId = savData.jobid;
-                var locJobs = locData;
-                if (locJobs.length > 0) {
-                    for (var i=0; i < locJobs.length; i++) {
-                        if (locJobs[i].jobid === savJobId) {
-                            this.setState({ chosenJobId: savJobId });
-                            this.setState({ chosenJob: locJobs[i].jobttl });
-                            this.setState({ jobBanner: locJobs[i].bannerurl });
-                            this.setState({ jobDescHtml: locJobs[i].desc });
-                        }
+        var localData = '';
+        if (localStorage.getItem('homeTiles')) { //get data from local storage
+            localData = JSON.parse(localStorage.getItem('homeTiles'));
+        } else {
+            localData = smpdata.primary_data.data;
+            localStorage.setItem('homeTiles', JSON.stringify(localData));
+        }
+        
+        var pathname = window.location.pathname;
+        var jobname = pathname.replace("/job/","");
+        jobname = global.tojob(jobname);
+
+        // for parameters id
+        const parsed = qs.parse(this.props.location.search);
+        if (parsed.id === undefined) {
+            this.redirectHome();
+        } else {
+            var origttl = "";
+            var jobid = parsed.id;
+            var locJobs = localData;
+            if (locJobs.length > 0) {
+                for (var i=0; i < locJobs.length; i++) {
+                    if (locJobs[i].jobid === jobid) {
+                        origttl = locJobs[i].jobttl;
+                        this.setState({ chosenJobId: jobid });
+                        this.setState({ chosenJob: locJobs[i].jobttl });
+                        this.setState({ jobBanner: locJobs[i].bannerurl });
+                        this.setState({ jobDescHtml: locJobs[i].desc });
+                    }
+                }
+                //
+                if (origttl === "") {
+                    this.redirectHome();
+                } else {
+                    if (origttl !== jobname) {
+                        const locid = global.getLocationId(this.props) === "" ? "" : "&locid="+global.getLocationId(this.props);
+                        window.location.href = global.tolink(origttl) + "?id=" + jobid + locid;
                     }
                 }
             }
-        }
+        } 
     }
     
     saveLocalQues(newQues) {
@@ -132,26 +161,44 @@ class Jobs extends Component {
     }
     
     checkLocation(selectedid, txt) {
-        console.log(txt);
+        var nopre_isactive = "no";
         var ALLACTIVE = 0;
         this.state.selectedLoc.map((keyactive) => {
             if (keyactive.check === "yes") { ALLACTIVE++; }
-        });
-        var NEWLOC = [];
-        this.state.selectedLoc.map((key) => {
-            var CHECKVALUE = "";
-            if (key.locid === selectedid) {
-                if (key.check === "") { CHECKVALUE="yes"; }
-                if (ALLACTIVE === 2 && CHECKVALUE==="yes") { 
-                    CHECKVALUE = key.check;
-                    this.showMsg('alert','Maximum selection allowed is 2');
+            if (keyactive.loctxt === "No preference") {
+                if (txt === "No preference") {
+                    if (keyactive.check === "") { nopre_isactive = "yes"; }
+                } else {
+                    if (keyactive.check === "yes") { nopre_isactive = "yes"; }
                 }
-            } else {
-                CHECKVALUE = key.check;
             }
-            NEWLOC.push({ locid:key.locid, loctxt:key.loctxt, check:CHECKVALUE });
         });
-        this.setState({ selectedLoc:NEWLOC });
+        //
+        if (nopre_isactive === "yes" && txt === "No preference") {
+            var newloc = [];
+            this.state.selectedLoc.map((key) => {
+                var check_value = key.loctxt === "No preference" ? "yes" : "";
+                newloc.push({ locid:key.locid, loctxt:key.loctxt, check:check_value });
+            });
+            this.setState({ selectedLoc:newloc });
+        } else {
+            var NEWLOC = [];
+            this.state.selectedLoc.map((key) => {
+                var CHECKVALUE = "";
+                if (key.locid === selectedid) {
+                    if (key.check === "") { CHECKVALUE="yes"; }
+                    if (ALLACTIVE === 2 && CHECKVALUE==="yes") { 
+                        CHECKVALUE = key.check;
+                        this.showMsg('alert','Maximum selection allowed is 2');
+                    }
+                } else {
+                    CHECKVALUE = key.check;
+                }
+                CHECKVALUE = key.loctxt === "No preference" ? "" : CHECKVALUE;
+                NEWLOC.push({ locid:key.locid, loctxt:key.loctxt, check:CHECKVALUE });
+            });
+            this.setState({ selectedLoc:NEWLOC });
+        }
     }
     
     backStep() {
@@ -208,38 +255,44 @@ class Jobs extends Component {
     
     apiGetOTP() {
         this.setState({ otpCount:'wait' });
-        let API_URL = config.API_GETOTP; console.log(API_URL);
+        let API_URL = config.API_GETOTP;
         var API_KIOSID = config.API_KIOSKID;
         var JOBID = this.state.chosenJobId;
         var MOBNUM = this.state.apiTxtMobile;
-        var MOBNUMLEN = MOBNUM.length;
-        if (global.validate_sgmobilenum(MOBNUM) === 0) { 
-            const LOCID = global.getLocationId(this.props) === "" ? "" : global.getLocationId(this.props);
-            this.showMsg('loading','');
-            var formData = new FormData();
-            formData.append('kioskid', API_KIOSID);
-            formData.append('jobid', JOBID);
-            formData.append('mobn', MOBNUM);
-            formData.append('locid', LOCID);
-            fetch(API_URL, {
-                method: 'POST',
-                body: formData
-            }).then(response => {
-                return response.json();
-            }).then(json => {
-                if (json.code === "00") {
-                    this.closeMsg();
-                    this.setState({ apiAppId:json.data[0].appid });
-                    this.setState({ activeStep:"sms_step2" });
-                    this.setState({ smsBtnNext:"btn-apply hide", smsBtnVerify:"btn-apply", smsTxtVerify:"" });
-                    this.setState({ otpCount:60, otpStatus:"on", apiTxtOTP:"" });
-                } else {
-                    this.showMsg('alert',json.message[0]);
-                } 
-            }).catch(error => {
-                this.showMsg('alert','System error. Please send an email to customercare@fastjobs.sg');
-                console.log('There has been a problem with fetching (Get OTP API): ',error);
-            });
+        var status = 0;
+        if (global.validate_sgmobilenum(MOBNUM) > 0) { status++; }
+        if (global.validate_mymobilenum(MOBNUM) > 0) { status++; }
+        if (global.clean_mobilenum(MOBNUM)===0 && (status===0 || status===1)) {
+            if (navigator.onLine === true) {
+                const LOCID = global.getLocationId(this.props) === "" ? "" : global.getLocationId(this.props);
+                this.showMsg('loading','');
+                var formData = new FormData();
+                formData.append('kioskid', API_KIOSID);
+                formData.append('jobid', JOBID);
+                formData.append('mobn', MOBNUM);
+                formData.append('locid', LOCID);
+                fetch(API_URL, {
+                    method: 'POST',
+                    body: formData
+                }).then(response => {
+                    return response.json();
+                }).then(json => {
+                    if (json.code === "00") {
+                        this.closeMsg();
+                        this.setState({ apiAppId:json.data[0].appid });
+                        this.setState({ activeStep:"sms_step2" });
+                        this.setState({ smsBtnNext:"btn-apply hide", smsBtnVerify:"btn-apply", smsTxtVerify:"" });
+                        this.setState({ otpCount:60, otpStatus:"on", apiTxtOTP:"" });
+                    } else {
+                        this.showMsg('alert',json.message[0]);
+                    } 
+                }).catch(error => {
+                    this.showMsg('alert','System error. Please send an email to customercare@fastjobs.sg');
+                    console.log('There has been a problem with fetching (Get OTP API): ',error);
+                });
+            } else {
+                this.showMsg('alert','Please try again or check your internet connection');
+            }
         } else {
             this.showMsg('alert','Please input valid mobile number');
         }
@@ -254,36 +307,40 @@ class Jobs extends Component {
         } else if (OTPNUM === "") {
             this.showMsg('alert','Please input the 4-digit OTP');
         } else {
-            var API_URL = config.API_VERIFYOTP; console.log(API_URL);
-            var formData = new FormData();
-            formData.append('appid', this.state.apiAppId);
-            formData.append('otp', OTPNUM);
-            fetch(API_URL, {
-                method: 'POST',
-                body: formData
-            }).then(response => {
-                return response.json();
-            }).then(json => {
-                if (json.code === "00") {
-                    ga.gPageView("UserDetails");
-                    this.closeMsg();
-                    this.setState({ activeStep:"contact_details" });
-                    this.setState({ stepNumber:"hide", stepInfo:"" });
-                    this.setState({ chkBoxAgree:imgChkOff, apiTxtName:json.data[0].name });
-                    this.setState({ otpCount:'wait', otpStatus:"off" });
-                } else {
-                    this.showMsg('alert',json.message[0]);
-                }
-            }).catch(error => {
-                this.showMsg('alert','System error. Please send an email to customercare@fastjobs.sg');
-                console.log('There has been a problem with fetching (Verify OTP API): ',error);
-            });
+            if (navigator.onLine === true) {
+                var API_URL = config.API_VERIFYOTP;
+                var formData = new FormData();
+                formData.append('appid', this.state.apiAppId);
+                formData.append('otp', OTPNUM);
+                fetch(API_URL, {
+                    method: 'POST',
+                    body: formData
+                }).then(response => {
+                    return response.json();
+                }).then(json => {
+                    if (json.code === "00") {
+                        ga.gPageView("UserDetails");
+                        this.closeMsg();
+                        this.setState({ activeStep:"contact_details" });
+                        this.setState({ stepNumber:"hide", stepInfo:"" });
+                        this.setState({ chkBoxAgree:imgChkOff, apiTxtName:json.data[0].name });
+                        this.setState({ otpCount:'wait', otpStatus:"off" });
+                    } else {
+                        this.showMsg('alert',json.message[0]);
+                    }
+                }).catch(error => {
+                    this.showMsg('alert','System error. Please send an email to customercare@fastjobs.sg');
+                    console.log('There has been a problem with fetching (Verify OTP API): ',error);
+                });
+            } else {
+                this.showMsg('alert','Please try again or check your internet connection');
+            }
         }
     }
     
     apiSaveUser() {
         this.showMsg('loading','');
-        var API_URL = config.API_SAVEUSER; console.log(API_URL);
+        var API_URL = config.API_SAVEUSER;
         var APPID = this.state.apiAppId;
         var USERNAME = this.state.apiTxtName;
         if (USERNAME === "") {
@@ -291,32 +348,36 @@ class Jobs extends Component {
         } else if (this.state.chkBoxAgree === imgChkOff) {
             this.showMsg('alert','Please check the checkbox if you are agree.');
         } else {
-            var formData = new FormData();
-            formData.append('appid', APPID);
-            formData.append('name', USERNAME);
-            fetch(API_URL, {
-                method: 'POST',
-                body: formData
-            }).then(response => {
-                return response.json();
-            }).then(json => {
-                if (json.code === "00") {
-                    ga.gPageView("Questions");
-                    this.closeMsg();
-                    this.apiRequestQuestions();
-                } else {
-                    this.showMsg('alert',json.message[0]);
-                }
-            }).catch(error => {
-                this.showMsg('alert','System error. Please send an email to customercare@fastjobs.sg');
-                console.log('There has been a problem with fetching (Saving User API): ',error);
-            });
+            if (navigator.onLine === true) {
+                var formData = new FormData();
+                formData.append('appid', APPID);
+                formData.append('name', USERNAME);
+                fetch(API_URL, {
+                    method: 'POST',
+                    body: formData
+                }).then(response => {
+                    return response.json();
+                }).then(json => {
+                    if (json.code === "00") {
+                        ga.gPageView("Questions");
+                        this.closeMsg();
+                        this.apiRequestQuestions();
+                    } else {
+                        this.showMsg('alert',json.message[0]);
+                    }
+                }).catch(error => {
+                    this.showMsg('alert','System error. Please send an email to customercare@fastjobs.sg');
+                    console.log('There has been a problem with fetching (Saving User API): ',error);
+                });
+            } else {
+                this.showMsg('alert','Please try again or check your internet connection');
+            }
         }
     }
     
     apiRequestQuestions() {
         this.showMsg('loading','');
-        var API_URL = config.API_GETQUESTIONS; console.log(API_URL);
+        var API_URL = config.API_GETQUESTIONS;
         var API_KIOSID = config.API_KIOSKID;
         var JOBID = this.state.chosenJobId;
         var formData = new FormData();
@@ -345,48 +406,52 @@ class Jobs extends Component {
     }
     
     apiSaveQuestions() {
-        this.showMsg('loading','');
-        var ANSWERS = this.state.apiQues;
-        var finalAnswer = {};
-        ANSWERS.forEach(function(qst) {
-            var quesid = qst.quesid;
-            var eachAns = {};
-            eachAns["ansid"] = qst.ansid;
-            eachAns["anstext"] = qst.anstext;
-            finalAnswer[quesid] = eachAns;
-        });
-        finalAnswer = JSON.stringify(finalAnswer);
-        //
-        var API_URL = config.API_SAVEQUESTIONS; console.log(API_URL);
-        var API_KIOSID = config.API_KIOSKID;
-        var JOBID = this.state.chosenJobId;
-        var formData = new FormData();
-        formData.append('kioskid', API_KIOSID);
-        formData.append('jobid', JOBID);
-        formData.append('appid', this.state.apiAppId);
-        formData.append('ans', finalAnswer);
-        fetch(API_URL, {
-            method: 'POST',
-            body: formData
-        }).then(response => {
-            return response.json();
-        }).then(json => {
-            if (json.code === "00") {
-                ga.gPageView("Locations");
-                this.closeMsg();
-                this.apiGetLocation();
-            } else {
-                this.showMsg('alert',json.message[0]);
-            }
-        }).catch(error => {
-            this.showMsg('alert','System error. Please send an email to customercare@fastjobs.sg');
-            console.log('There has been a problem with fetching (Saving Questions API): ',error);
-        });
+        if (navigator.onLine === true) {
+            this.showMsg('loading','');
+            var ANSWERS = this.state.apiQues;
+            var finalAnswer = {};
+            ANSWERS.forEach(function(qst) {
+                var quesid = qst.quesid;
+                var eachAns = {};
+                eachAns["ansid"] = qst.ansid;
+                eachAns["anstext"] = qst.anstext;
+                finalAnswer[quesid] = eachAns;
+            });
+            finalAnswer = JSON.stringify(finalAnswer);
+            //
+            var API_URL = config.API_SAVEQUESTIONS;
+            var API_KIOSID = config.API_KIOSKID;
+            var JOBID = this.state.chosenJobId;
+            var formData = new FormData();
+            formData.append('kioskid', API_KIOSID);
+            formData.append('jobid', JOBID);
+            formData.append('appid', this.state.apiAppId);
+            formData.append('ans', finalAnswer);
+            fetch(API_URL, {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                return response.json();
+            }).then(json => {
+                if (json.code === "00") {
+                    ga.gPageView("Locations");
+                    this.closeMsg();
+                    this.apiGetLocation();
+                } else {
+                    this.showMsg('alert',json.message[0]);
+                }
+            }).catch(error => {
+                this.showMsg('alert','System error. Please send an email to customercare@fastjobs.sg');
+                console.log('There has been a problem with fetching (Saving Questions API): ',error);
+            });
+        } else {
+            this.showMsg('alert','Please try again or check your internet connection');
+        }
     }
     
     apiGetLocation() {
         this.showMsg('loading','');
-        var API_URL = config.API_GETLOCATIONS; console.log(API_URL);
+        var API_URL = config.API_GETLOCATIONS;
         var JOBID = this.state.chosenJobId;
         var APPID = this.state.apiAppId;
         var formData = new FormData();
@@ -418,46 +483,45 @@ class Jobs extends Component {
         var LOCID = "";
         this.state.selectedLoc.map((key) => {
             if(key.check === "yes") { 
-                if (LOCID === "") {
-                    COUNTANS++;
-                    LOCID += key.locid + ",";
-                } else {
-                    COUNTANS++;
-                    LOCID += key.locid;
-                }
+                COUNTANS++;
+                LOCID = LOCID === "" ? LOCID += key.locid : LOCID += "," + key.locid;
             }
         });
         //
-        if (COUNTANS === 2) {
-            this.showMsg('loading','');
-            var API_URL = config.API_SAVELOCATIONS; console.log(API_URL);
-            var JOBID = this.state.chosenJobId;
-            var APPID = this.state.apiAppId;
-            var formData = new FormData();
-            formData.append('jobid', JOBID);
-            formData.append('appid', APPID);
-            formData.append('locids', APPID);
-            fetch(API_URL, {
-                method: 'POST',
-                body: formData
-            }).then(response => {
-                return response.json();
-            }).then(json => {
-                if (json.code === "00") {
-                    ga.gPageView("Thankyou");
-                    this.closeMsg();
-                    this.setState({ activeStep:"thanks_page" });
-                    this.setState({ stepLocation:"hide", stepThanks:"" });
-                    localStorage.removeItem("newData");
-                } else {
-                    this.showMsg('alert',json.message[0]);
-                }
-            }).catch(error => {
-                this.showMsg('alert','System error. Please send an email to customercare@fastjobs.sg');
-                console.log('There has been a problem with fetching (Save Locations API): ',error);
-            });
+        if (COUNTANS > 0) {
+            if (navigator.onLine === true) {
+                this.showMsg('loading','');
+                var API_URL = config.API_SAVELOCATIONS;
+                var JOBID = this.state.chosenJobId;
+                var APPID = this.state.apiAppId;
+                var formData = new FormData();
+                formData.append('jobid', JOBID);
+                formData.append('appid', APPID);
+                formData.append('locids', LOCID);
+                fetch(API_URL, {
+                    method: 'POST',
+                    body: formData
+                }).then(response => {
+                    return response.json();
+                }).then(json => {
+                    if (json.code === "00") {
+                        ga.gPageView("Thankyou");
+                        this.closeMsg();
+                        this.setState({ activeStep:"thanks_page" });
+                        this.setState({ stepLocation:"hide", stepThanks:"" });
+                        localStorage.removeItem("newData");
+                    } else {
+                        this.showMsg('alert',json.message[0]);
+                    }
+                }).catch(error => {
+                    this.showMsg('alert','System error. Please send an email to customercare@fastjobs.sg');
+                    console.log('There has been a problem with fetching (Save Locations API): ',error);
+                });
+            } else {
+                this.showMsg('alert','Please try again or check your internet connection');
+            }
         } else {
-            this.showMsg('alert','Maximum selection allowed is 2');
+            this.showMsg('alert','Please choose your preferred working location');
         }
     }
     
@@ -741,7 +805,11 @@ class Jobs extends Component {
     componentDidMount() {
         this.getLocalData();
         
-        
+        ga.gInitialize();
+        ga.gPageView("JobAds");
+        var locid = global.getLocationId(this.props);
+        if (locid !== "") {  ga.gDim(1, locid); }
+
         setInterval(() => {
             var count = this.state.otpCount;
             if (this.state.otpStatus === "on" && count <= 60) {
@@ -753,15 +821,6 @@ class Jobs extends Component {
                 }
             } 
         }, 1000);
-        
-
-        // for parameters id
-        console.log(this.props.location.search);
-        const parsed = qs.parse(this.props.location.search);
-        console.log(parsed);
-        
-        ga.gInitialize();
-        ga.gPageView("JobAds");
     }
 
     render() {
