@@ -124,4 +124,7 @@ export const prodata = {
     ]
 };
 
-export const primary_data = window.location.host === "pwa.fastjobs.sg" ? prodata : devdata;
+var _primary_data = window.location.host === "pwa.fastjobs.sg" ? prodata : devdata;
+if (window.location.host === "master.d2k4wkaxt95owy.amplifyapp.com") { _primary_data = devdata; }
+
+export const primary_data = _primary_data;

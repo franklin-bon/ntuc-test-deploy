@@ -1,6 +1,5 @@
 import * as qs from 'query-string';
 import * as config from '../config.js';
-import * as ga from './GoogleAnalytics';
 
 export function clean_mobilenum(mobilenum) {
     let error = 0;
